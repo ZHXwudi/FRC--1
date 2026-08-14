@@ -6,13 +6,13 @@
 
 ORCID 记录 [0000-0002-8663-0470](https://orcid.org/0000-0002-8663-0470) 的姓名为 **Nong Xiang**，就职机构为中国科学院等离子体物理研究所（Institute of Plasma Physics, Chinese Academy of Sciences，合肥）。其 ORCID 论文记录与 Crossref 中的 EAST、平衡重建和等离子体波研究互相印证。
 
-本文只根据可核验的作者记录和论文元数据归纳研究方向，不根据姓名搜索结果推断任职级别或行政职务。
+本文只根据可核验的 ORCID、DOI/Crossref 元数据和公开摘要归纳研究方向，不根据姓名搜索结果推断任职级别、行政职务或在贝塔聚变的具体职责。作者位次按 DOI 元数据中的作者顺序记录。
 
 ## 2. 研究主线
 
 ### 2.1 托卡马克平衡重建与实时化
 
-[基于深度学习的 EAST 托卡马克快速平衡重建（Fast equilibrium reconstruction by deep learning on EAST tokamak）](https://doi.org/10.1063/5.0152318) 以 EAST 磁测量为输入、EFIT 计算的极向磁通为输出目标，使用深度神经网络实现快速平衡重建。论文摘要明确提到：
+[基于深度学习的 EAST 托卡马克快速平衡重建（Fast equilibrium reconstruction by deep learning on EAST tokamak）](https://doi.org/10.1063/5.0152318) 发表于 **AIP Advances 13(7)，2023**，项农老师为共同作者（第 3/4 作者）。论文以 EAST 磁测量为输入、EFIT 计算的极向磁通为输出目标，使用深度神经网络实现快速平衡重建。论文摘要明确提到：
 
 - 输入是磁测量，输出是 EFIT 的极向磁通。
 - 使用自动超参数优化。
@@ -23,24 +23,33 @@ ORCID 记录 [0000-0002-8663-0470](https://orcid.org/0000-0002-8663-0470) 的姓
 
 ### 2.2 平衡、电流模拟与诊断一致性
 
-[EAST 上受电流模拟一致性约束的平衡重建（Equilibrium reconstruction constrained by the consistency of current simulation on EAST）](https://doi.org/10.1088/1741-4326/ad35d7) 的出发点是：高可信平衡对等离子体研究很重要，但 POINT 与 MSE 等间接测量存在不确定性。论文引入电流模拟一致性约束，并指出 RF 波驱动电流会通过 q 剖面与波沉积位置的相互作用影响结果。
+[EAST 上受电流模拟一致性约束的平衡重建（Equilibrium reconstruction constrained by the consistency of current simulation on EAST）](https://doi.org/10.1088/1741-4326/ad35d7) 发表于 **Nuclear Fusion 64(5)，2024**，项农老师为共同作者（第 2/17 作者）。论文的出发点是：高可信平衡对等离子体研究很重要，但 POINT 与 MSE 等间接测量存在不确定性。论文引入电流模拟一致性约束，并指出 RF 波驱动电流会通过 q 剖面与波沉积位置的相互作用影响结果。
 
-方法论上，这不是单纯追求数据拟合误差最小，而是把诊断、平衡和电流模拟的一致性一起放进重建问题。这是本项目使用共享磁通函数同时拟合 `Br/Bz`，而不是独立插值两个分量的理由。
+方法论上，这不是单纯追求数据拟合误差最小，而是把诊断、平衡和电流模拟的一致性一起放进重建问题。本项目借鉴的是“显式检查一致性”的原则：使用共享磁通函数同时拟合 `Br/Bz`，而不是独立插值两个分量。必须强调，`div(B)` 检查不等同于论文的电流模拟一致性约束。
 
 ### 2.3 射频波-等离子体相互作用与边界问题
 
 项农老师较早的公开研究包括：
 
-- [非均匀等离子体中电子伯恩斯坦波的二次谐波生成（Second-Harmonic Generation of Electron-Bernstein Waves in an Inhomogeneous Plasma）](https://doi.org/10.1103/PhysRevLett.100.085002)。
-- [EAST 托卡马克低杂波天线前等离子体与保护限制器相互作用（Interactions of plasma and guard limiter in front of lower hybrid wave antenna on EAST tokamak）](https://doi.org/10.1088/1741-4326/ab082c)。
+- [低杂波参数不稳定性的粒子网格（PIC）模拟（Particle-in-cell simulations on parametric instability of the lower hybrid wave）](https://doi.org/10.1063/5.0104505)，Physics of Plasmas，2022，共同作者（第 2/8 作者）。摘要支持的结论是：使用二维全粒子 PIC 方法研究 EAST 参数下低杂泵波向低杂边带与低频模的参数衰变。
+- [EAST 托卡马克低杂波天线前等离子体与保护限制器相互作用（Interactions of plasma and guard limiter in front of lower hybrid wave antenna on EAST tokamak）](https://doi.org/10.1088/1741-4326/ab082c)，Nuclear Fusion，2019，第一作者（第 1/6 作者）。本项目只依据题名陈述研究对象。
+- [非均匀等离子体中电子伯恩斯坦波的二次谐波生成（Second-Harmonic Generation of Electron-Bernstein Waves in an Inhomogeneous Plasma）](https://doi.org/10.1103/PhysRevLett.100.085002)，Physical Review Letters，2008，第一作者（第 1/2 作者）。本项目只依据题名陈述研究对象。
 
 由此可以严谨地说，其研究包含 RF 波物理、电流驱动以及边界等离子体/等离子体-组件互作用。但仅凭这两篇论文，不应将其扩大表述为“所有加热、输运与材料问题的专家”。
 
 ### 2.4 集成建模、科研软件与可复现性
 
-[应用 FAIR4RS 原则开发磁约束聚变集成建模环境（Applying FAIR4RS principles to develop an integrated modeling environment for the magnetic confinement fusion）](https://doi.org/10.1038/s41597-023-02470-y) 介绍了面向 EAST 研究软件的 FyDev 工具，覆盖构建、部署、调用、唯一标识、Python 模块化、包管理和工作流复现。
+[应用 FAIR4RS 原则开发磁约束聚变集成建模环境（Applying FAIR4RS principles to develop an integrated modeling environment for the magnetic confinement fusion）](https://doi.org/10.1038/s41597-023-02470-y) 发表于 **Scientific Data 10(1)，2023**，项农老师为共同作者（第 3/3 作者）。论文介绍了面向 EAST 研究软件的 FyDev 工具，覆盖发现、获取、构建、复用、唯一标识、Python 调用和工作流复现。
 
 这表明其关注点不只是单个物理模型，也包含如何让聚变研究软件可组合、可调用和可复现。这与企业级智能体的工具注册、版本化、数据血缘、运行日志和人工审批有很强的工程连接。
+
+## 2.5 图片与证据规则
+
+- A 级证据：DOI/Crossref 元数据、论文摘要或 ORCID 公开记录可直接支持的事实。
+- 项目映射：候选人根据论文方法做出的工程对应，必须与论文事实分开陈述。
+- 页面中的重建、脉冲和敏感性结果均为合成数据；RF 图为自行绘制的概念关系图。
+- 只复用 FyDev 论文 Figure 1。该论文采用 CC BY 4.0，图片保持未修改，来源、署名、获取日期和 SHA-256 见 `assets/SOURCES.md`。
+- 其他论文未确认可复用图片许可，或出版页面无法稳定核验，因此不复制论文图片。
 
 ## 3. 与 FRC 的边界
 

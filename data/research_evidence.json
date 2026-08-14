@@ -1,0 +1,122 @@
+{
+  "last_verified": "2026-08-14",
+  "verification_method": "Crossref DOI metadata, article abstracts, ORCID public record",
+  "identity": {
+    "name_zh": "项农",
+    "name_en": "Nong Xiang",
+    "orcid": "0000-0002-8663-0470",
+    "verified_affiliation": "Institute of Plasma Physics, Chinese Academy of Sciences",
+    "claim_boundary": "仅引用 ORCID 和论文元数据可交叉核验的姓名、机构和作者关系；不根据姓名搜索推断行政职务。"
+  },
+  "papers": [
+    {
+      "id": "east_fast_equilibrium",
+      "title_en": "Fast equilibrium reconstruction by deep learning on EAST tokamak",
+      "title_zh": "基于深度学习的 EAST 托卡马克快速平衡重建",
+      "doi": "10.1063/5.0152318",
+      "journal": "AIP Advances",
+      "year": 2023,
+      "volume_issue": "13(7)",
+      "author_role": "共同作者（第 3/4 作者）",
+      "evidence_level": "A",
+      "verified_claim": "论文以 EAST 磁测量为输入、EFIT 极向磁通为目标训练深度神经网络，并比较内部磁面、最后闭合磁面和归一化内感；摘要声称达到实时控制的时间约束。",
+      "project_relation": "直接方法关联：本项目同样从稀疏磁测量重建磁通表示，但使用岭回归基底，不是 DNN，也没有复现 EFIT。",
+      "must_not_claim": "不得将合成结果说成 EAST/FRC 实验精度，不得声称复现了论文的深度学习模型。",
+      "license": "CC BY 4.0",
+      "figure_reused": false
+    },
+    {
+      "id": "east_current_consistency",
+      "title_en": "Equilibrium reconstruction constrained by the consistency of current simulation on EAST",
+      "title_zh": "EAST 上受电流模拟一致性约束的平衡重建",
+      "doi": "10.1088/1741-4326/ad35d7",
+      "journal": "Nuclear Fusion",
+      "year": 2024,
+      "volume_issue": "64(5)",
+      "author_role": "共同作者（第 2/17 作者）",
+      "evidence_level": "A",
+      "verified_claim": "论文针对 POINT/MSE 等间接测量导致的平衡重建不确定性，引入电流模拟一致性约束，并指出 RF 驱动电流、q 剖面和波沉积区之间的相互作用。",
+      "project_relation": "原则关联：本项目将 Br/Bz 纳入共享磁通表示并检查 div(B)，但没有电流演化、q 剖面或 RF 波沉积模型。",
+      "must_not_claim": "不得将 div(B) 约束等同于论文的电流模拟一致性约束。",
+      "license": "CC BY 4.0",
+      "figure_reused": false
+    },
+    {
+      "id": "lh_parametric_instability",
+      "title_en": "Particle-in-cell simulations on parametric instability of the lower hybrid wave",
+      "title_zh": "低杂波参数不稳定性的粒子网格（PIC）模拟",
+      "doi": "10.1063/5.0104505",
+      "journal": "Physics of Plasmas",
+      "year": 2022,
+      "volume_issue": "29",
+      "author_role": "共同作者（第 2/8 作者）",
+      "evidence_level": "A",
+      "verified_claim": "论文用二维全粒子 PIC 方法研究 EAST 参数下低杂波泵波向低杂边带和低频模的参数衰变。",
+      "project_relation": "研究领域关联：只用于说明 RF 波-等离子体相互作用研究线索，与本项目的磁重建模型没有直接算法对应。",
+      "must_not_claim": "本项目未实现 PIC、低杂波色散或参数不稳定性仿真。",
+      "license": "Crossref 未声明可复用许可",
+      "figure_reused": false
+    },
+    {
+      "id": "lh_antenna_limiter",
+      "title_en": "Interactions of plasma and guard limiter in front of lower hybrid wave antenna on EAST tokamak",
+      "title_zh": "EAST 低杂波天线前等离子体与保护限制器相互作用",
+      "doi": "10.1088/1741-4326/ab082c",
+      "journal": "Nuclear Fusion",
+      "year": 2019,
+      "volume_issue": "59(5)",
+      "author_role": "第一作者（第 1/6 作者）",
+      "evidence_level": "A",
+      "verified_claim": "题名和 DOI 元数据证明该工作研究 EAST 低杂波天线前的等离子体-保护限制器相互作用。",
+      "project_relation": "研究领域关联：页面仅绘制部件关系概念图，不使用 EAST 几何或测量数据。",
+      "must_not_claim": "不得把概念图说成 EAST 天线/限制器真实尺寸或仿真结果。",
+      "license": "出版社版权，未复用论文图片",
+      "figure_reused": false
+    },
+    {
+      "id": "ebw_second_harmonic",
+      "title_en": "Second-Harmonic Generation of Electron-Bernstein Waves in an Inhomogeneous Plasma",
+      "title_zh": "非均匀等离子体中电子伯恩斯坦波的二次谐波生成",
+      "doi": "10.1103/PhysRevLett.100.085002",
+      "journal": "Physical Review Letters",
+      "year": 2008,
+      "volume_issue": "100(8)",
+      "author_role": "第一作者（第 1/2 作者）",
+      "evidence_level": "A",
+      "verified_claim": "题名和 DOI 元数据证明该工作关注非均匀等离子体中电子伯恩斯坦波二次谐波生成。",
+      "project_relation": "研究领域关联：作为波-等离子体相互作用研究的作者证据，不直接支撑本项目的重建算法。",
+      "must_not_claim": "本项目未模拟电子伯恩斯坦波或谐波生成。",
+      "license": "APS 默认版权，未复用论文图片",
+      "figure_reused": false
+    },
+    {
+      "id": "fydev_fair4rs",
+      "title_en": "Applying FAIR4RS principles to develop an integrated modeling environment for the magnetic confinement fusion",
+      "title_zh": "应用 FAIR4RS 原则开发磁约束聚变集成建模环境",
+      "doi": "10.1038/s41597-023-02470-y",
+      "journal": "Scientific Data",
+      "year": 2023,
+      "volume_issue": "10(1)",
+      "author_role": "共同作者（第 3/3 作者）",
+      "evidence_level": "A",
+      "verified_claim": "论文介绍 FyDev 在 EAST 集成建模环境中对研究软件进行发现、获取、构建、复用和 Python 调用的机制。",
+      "project_relation": "工程直接关联：对应本项目的结构化元数据、Python 工具、版本、测试、运行清单和专家审阅。",
+      "must_not_claim": "不得声称本项目复现或接入了 FyDev/EAST 集成建模环境。",
+      "license": "CC BY 4.0",
+      "figure_reused": true
+    }
+  ],
+  "assets": [
+    {
+      "id": "fydev_figure_1",
+      "path": "assets/fydev-workflow-figure1.png",
+      "paper_id": "fydev_fair4rs",
+      "figure": "Figure 1",
+      "source_url": "https://media.springernature.com/lw685/springer-static/image/art%3A10.1038%2Fs41597-023-02470-y/MediaObjects/41597_2023_2470_Fig1_HTML.png",
+      "license": "CC BY 4.0",
+      "attribution": "Liu X, Yu Z, Xiang N. Scientific Data 10, 2023. DOI: 10.1038/s41597-023-02470-y.",
+      "sha256": "0c1f0c4372763a619131fb5e45d15dc1394656ca1dbcc5fb6271ec1f01dbaaf6",
+      "modified": false
+    }
+  ]
+}

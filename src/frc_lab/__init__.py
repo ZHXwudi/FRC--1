@@ -14,6 +14,7 @@ from .physics import (
     reversal_radius,
     sample_probes,
 )
+from .research import load_research_catalog, validate_research_catalog
 
 __all__ = [
     "Equilibrium",
@@ -28,4 +29,6 @@ __all__ = [
     "reconstruct_from_probes",
     "reversal_radius",
     "sample_probes",
+    "load_research_catalog",
+    "validate_research_catalog",
 ]

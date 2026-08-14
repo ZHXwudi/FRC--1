@@ -24,13 +24,18 @@ from frc_lab.physics import (  # noqa: E402
     reversal_radius,
     sample_probes,
 )
+from frc_lab.research import load_research_catalog, validate_research_catalog  # noqa: E402
+
+
+RESEARCH_CATALOG = load_research_catalog(ROOT / "data" / "research_evidence.json")
+CATALOG_ERRORS = validate_research_catalog(RESEARCH_CATALOG, ROOT)
 
 
 st.set_page_config(
-    page_title="FRC 场反位形平衡重建实验室",
+    page_title="类 FRC 磁诊断与物理约束重建实验室",
     page_icon="Ψ",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="auto",
 )
 
 st.markdown(
@@ -63,12 +68,18 @@ st.markdown(
     .research-row { padding: .65rem 0; border-bottom: 1px solid #dde3e6; }
     .research-row:last-child { border-bottom: 0; }
     .tag { display: inline-block; padding: .1rem .42rem; border-radius: 4px; background: #e6f6f7; color: #12616a; font-size: .76rem; margin-right: .3rem; }
+    .evidence-note { border: 1px solid #cbd5da; border-left: 3px solid #087f8c; padding: .65rem .8rem; background: #ffffff; color: #34454f; }
+    .figure-caption { color: #5c6972; font-size: .78rem; line-height: 1.5; margin-top: -.35rem; }
+    .source-block { border-top: 1px solid #dde3e6; padding-top: .55rem; color: #52616b; font-size: .82rem; }
+    .evidence-a { display: inline-block; padding: .08rem .38rem; border-radius: 4px; background: #e8f5ec; color: #236339; font-size: .74rem; font-weight: 700; }
     a { color: #096d78 !important; }
     @media (max-width: 700px) {
       .block-container { padding: 1rem .8rem 2rem; }
       h1 { font-size: 1.45rem !important; }
       .flow-node { min-height: auto; }
       .flow-arrow { padding-top: .25rem; transform: rotate(90deg); }
+      [data-testid="stTabs"] button { padding-left: .32rem !important; padding-right: .32rem !important; }
+      [data-testid="stTabs"] button p { font-size: .72rem !important; white-space: nowrap; }
     }
     </style>
     """,
@@ -259,6 +270,16 @@ def field_comparison_figure(grid, equilibrium, probes, reconstruction, idw_bz):
     )
     figure.update_layout(margin=dict(l=58, r=28, t=56, b=52))
     figure.update_annotations(y=1.03)
+    figure.add_annotation(
+        x=0.5,
+        y=-0.16,
+        xref="paper",
+        yref="paper",
+        text="固定随机种子的合成类 FRC 场；非装置数据，非 EAST/FRC 实验重建结果",
+        showarrow=False,
+        font=dict(size=11, color="#687680"),
+    )
+    figure.update_layout(margin=dict(l=58, r=28, t=56, b=78))
     return figure
 
 
@@ -367,7 +388,7 @@ def shot_figure(shot: pd.DataFrame):
     figure.add_annotation(x=1.35, y=1.05, yref="paper", text="压缩", showarrow=False)
     figure.update_layout(
         **PLOT_LAYOUT,
-        title="合成脉冲诊断概览",
+        title="合成脉冲诊断概览（非装置数据）",
         height=440,
         legend=dict(orientation="h", y=1.15, x=0.0),
     )
@@ -394,12 +415,158 @@ def sensitivity_figure(probe_counts, noise_levels, physics_errors, idw_errors):
     )
     figure.update_layout(
         **PLOT_LAYOUT,
-        title="物理约束方法相对 IDW 的精度改善",
+        title="物理约束方法相对 IDW 的精度改善（合成基准）",
         height=430,
         xaxis_title="磁探针数量",
         yaxis_title="测量噪声 [% RMS]",
     )
     return figure
+
+
+def _add_flow_node(figure, x0, x1, y0, y1, text, fill="#eef7f7", border="#7da9ae"):
+    figure.add_shape(
+        type="rect",
+        x0=x0,
+        x1=x1,
+        y0=y0,
+        y1=y1,
+        line=dict(color=border, width=1.2),
+        fillcolor=fill,
+    )
+    figure.add_annotation(
+        x=(x0 + x1) / 2,
+        y=(y0 + y1) / 2,
+        text=text,
+        showarrow=False,
+        align="center",
+        font=dict(size=12, color="#263642"),
+    )
+
+
+def _add_flow_arrow(figure, x0, x1, y):
+    figure.add_annotation(
+        x=x1,
+        y=y,
+        ax=x0,
+        ay=y,
+        xref="x",
+        yref="y",
+        axref="x",
+        ayref="y",
+        showarrow=True,
+        arrowhead=2,
+        arrowsize=1,
+        arrowwidth=1.4,
+        arrowcolor="#708089",
+        text="",
+    )
+
+
+def equilibrium_research_flow_figure():
+    figure = go.Figure()
+    published = [
+        "EAST<br>磁测量",
+        "深度神经网络<br>自动调参",
+        "EFIT 极向磁通<br>监督目标",
+        "磁面 / LCFS / l<sub>i</sub><br>实时约束评估",
+    ]
+    prototype = [
+        "合成类 FRC<br>稀疏磁探针",
+        "岭回归<br>平滑磁通基底",
+        "共享 ψ 导出<br>Br / Bz",
+        "NRMSE / div(B)<br>IDW 基线对照",
+    ]
+    columns = [
+        ((0.45, 5.05), published, "#edf7f8", "#6f9fa5", "论文方法"),
+        ((5.75, 10.35), prototype, "#fff6ea", "#d19a62", "本项目方法"),
+    ]
+    node_y = [4.35, 3.15, 1.95, 0.75]
+    for (x0, x1), labels, fill, border, heading in columns:
+        center = (x0 + x1) / 2
+        figure.add_annotation(
+            x=center,
+            y=5.48,
+            text=heading,
+            showarrow=False,
+            font=dict(size=13, color=border),
+        )
+        for index, (y0, label) in enumerate(zip(node_y, labels)):
+            _add_flow_node(figure, x0, x1, y0, y0 + 0.68, label, fill, border)
+            if index < len(node_y) - 1:
+                figure.add_annotation(
+                    x=center,
+                    y=node_y[index + 1] + 0.73,
+                    ax=center,
+                    ay=y0 - 0.05,
+                    xref="x",
+                    yref="y",
+                    axref="x",
+                    ayref="y",
+                    showarrow=True,
+                    arrowhead=2,
+                    arrowwidth=1.3,
+                    arrowcolor="#708089",
+                    text="",
+                )
+    figure.add_shape(type="line", x0=5.4, x1=5.4, y0=0.65, y1=5.52, line=dict(color="#dce2e5", width=1))
+    figure.add_annotation(
+        x=5.4,
+        y=0.12,
+        text="方法映射示意：本项目未复现 DNN、EFIT、电流演化或真实装置控制",
+        showarrow=False,
+        font=dict(size=11, color="#687680"),
+    )
+    figure.update_xaxes(visible=False, range=[0.0, 10.8], fixedrange=True)
+    figure.update_yaxes(visible=False, range=[-0.05, 5.75], fixedrange=True)
+    layout = {**PLOT_LAYOUT, "height": 500, "margin": dict(l=12, r=12, t=14, b=16)}
+    figure.update_layout(**layout)
+    return figure
+
+
+def rf_research_schematic():
+    figure = go.Figure()
+    figure.add_annotation(x=2.75, y=4.85, text="低杂波参数衰变<br>（2022）", showarrow=False, font=dict(size=13, color="#263642"))
+    figure.add_annotation(x=8.25, y=4.85, text="等离子体-部件关系<br>（2019）", showarrow=False, font=dict(size=13, color="#263642"))
+    _add_flow_node(figure, 0.55, 4.95, 3.65, 4.30, "低杂波泵波", "#edf7f8", "#6f9fa5")
+    _add_flow_node(figure, 0.55, 4.95, 2.30, 2.95, "低杂边带", "#f4f7f8", "#9eabb1")
+    _add_flow_node(figure, 0.55, 4.95, 0.95, 1.60, "低频模：ISQM / ICQM", "#f4f7f8", "#9eabb1")
+    figure.add_annotation(x=2.75, y=3.0, ax=2.75, ay=3.6, xref="x", yref="y", axref="x", ayref="y", showarrow=True, arrowhead=2, arrowcolor="#708089", text="")
+    figure.add_annotation(x=2.75, y=1.65, ax=2.75, ay=3.6, xref="x", yref="y", axref="x", ayref="y", showarrow=True, arrowhead=2, arrowcolor="#708089", text="")
+
+    _add_flow_node(figure, 6.05, 10.45, 3.65, 4.30, "低杂波天线", "#fff6ea", "#d19a62")
+    _add_flow_node(figure, 6.05, 10.45, 2.30, 2.95, "天线前边界等离子体", "#f4f7f8", "#9eabb1")
+    _add_flow_node(figure, 6.05, 10.45, 0.95, 1.60, "保护限制器", "#fff0ed", "#c98277")
+    figure.add_annotation(x=8.25, y=3.0, ax=8.25, ay=3.6, xref="x", yref="y", axref="x", ayref="y", showarrow=True, arrowhead=2, arrowcolor="#708089", text="")
+    figure.add_annotation(x=8.25, y=1.65, ax=8.25, ay=2.25, xref="x", yref="y", axref="x", ayref="y", showarrow=True, arrowhead=2, arrowcolor="#708089", text="")
+    figure.add_shape(type="line", x0=5.5, x1=5.5, y0=0.85, y1=4.55, line=dict(color="#dce2e5", width=1))
+    figure.add_annotation(
+        x=5.5,
+        y=0.22,
+        text="基于论文摘要/题名绘制的关系示意；非 EAST 几何、尺寸、波形或仿真结果",
+        showarrow=False,
+        font=dict(size=11, color="#687680"),
+    )
+    figure.update_xaxes(visible=False, range=[0.0, 11.0], fixedrange=True)
+    figure.update_yaxes(visible=False, range=[0.0, 5.15], fixedrange=True)
+    layout = {**PLOT_LAYOUT, "height": 500, "margin": dict(l=12, r=12, t=12, b=16)}
+    figure.update_layout(**layout)
+    return figure
+
+
+def research_evidence_table(catalog):
+    return pd.DataFrame(
+        [
+            {
+                "论文": paper["title_zh"],
+                "期刊 / 年份": f'{paper["journal"]} {paper["volume_issue"]}, {paper["year"]}',
+                "项农老师作者位次": paper["author_role"],
+                "证据": f'{paper["evidence_level"]} · DOI',
+                "与项目关系": paper["project_relation"],
+                "DOI": f'https://doi.org/{paper["doi"]}',
+            }
+            for paper in catalog["papers"]
+        ]
+    )
 
 
 def format_radius(value: float | None) -> str:
@@ -449,7 +616,7 @@ reference_radius = reversal_radius(equilibrium.bz, grid)
 reconstructed_radius = reversal_radius(reconstruction.bz, grid)
 
 st.markdown('<div class="app-kicker">聚变诊断 / 面试演示项目</div>', unsafe_allow_html=True)
-st.title("FRC 场反位形平衡重建实验室")
+st.title("类 FRC 磁诊断与物理约束重建实验室")
 st.markdown(
     '<div class="app-subtitle">面向稀疏磁诊断、物理约束重建、传感器质量复核和'
     "专家在环实验分析的可复现 Python 原型。</div>",
@@ -462,8 +629,11 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-tab_equilibrium, tab_shot, tab_sensitivity, tab_agent, tab_interview = st.tabs(
-    ["平衡重建", "脉冲诊断", "敏感性", "智能体架构", "研究与面试"]
+if CATALOG_ERRORS:
+    st.error("研究证据目录校验失败：" + "；".join(CATALOG_ERRORS))
+
+tab_equilibrium, tab_shot, tab_sensitivity, tab_research, tab_agent, tab_interview = st.tabs(
+    ["平衡重建", "脉冲诊断", "敏感性", "研究证据", "智能体架构", "面试表达"]
 )
 
 with tab_equilibrium:
@@ -572,6 +742,116 @@ with tab_sensitivity:
         )
         st.dataframe(sensitivity_table.style.format("{:.2%}"), width="stretch")
 
+
+with tab_research:
+    st.subheader("项农老师研究证据地图")
+    st.markdown(
+        '<div class="evidence-note"><span class="evidence-a">A 级证据</span> '
+        "本页只使用 DOI/Crossref 元数据、论文摘要和 ORCID 公开记录。论文事实、项目映射与图像许可"
+        "分别记录；合成结果和概念示意不作为 EAST 或 FRC 实验结论。</div>",
+        unsafe_allow_html=True,
+    )
+
+    paper_by_id = {paper["id"]: paper for paper in RESEARCH_CATALOG["papers"]}
+    evidence_a, evidence_b, evidence_c = st.columns(3)
+    evidence_a.metric("已核验论文", f'{len(RESEARCH_CATALOG["papers"])} 篇')
+    evidence_b.metric(
+        "合规复用原论文图",
+        f'{sum(paper["figure_reused"] for paper in RESEARCH_CATALOG["papers"])} 张',
+    )
+    evidence_c.metric("真实装置数据", "0 组", delta="本项目仅用合成数据", delta_color="off")
+
+    st.markdown("#### 1. 平衡重建：直接方法关联")
+    st.plotly_chart(
+        equilibrium_research_flow_figure(),
+        width="stretch",
+        config=PLOT_CONFIG,
+    )
+    fast_paper = paper_by_id["east_fast_equilibrium"]
+    consistency_paper = paper_by_id["east_current_consistency"]
+    source_left, source_right = st.columns(2)
+    with source_left:
+        st.markdown(
+            f"**已核验事实：快速平衡重建**  \n"
+            f"{fast_paper['journal']} {fast_paper['volume_issue']}（{fast_paper['year']}）；"
+            f"项农老师为{fast_paper['author_role']}。论文以 EAST 磁测量为输入、EFIT 极向磁通为监督目标，"
+            "比较内部磁面、最后闭合磁面和归一化内感，并报告满足实时控制的时间约束。  \n"
+            f"[DOI：{fast_paper['doi']}](https://doi.org/{fast_paper['doi']})"
+        )
+    with source_right:
+        st.markdown(
+            f"**已核验事实：电流模拟一致性**  \n"
+            f"{consistency_paper['journal']} {consistency_paper['volume_issue']}（{consistency_paper['year']}）；"
+            f"项农老师为{consistency_paper['author_role']}。论文针对 POINT/MSE 等间接测量的不确定性，"
+            "引入电流模拟一致性约束，并讨论 RF 驱动电流、q 剖面与波沉积区的相互作用。  \n"
+            f"[DOI：{consistency_paper['doi']}](https://doi.org/{consistency_paper['doi']})"
+        )
+    st.warning(
+        "边界：本项目的共享磁通表示与 div(B) 检查不是论文中的电流模拟一致性约束；"
+        "本项目也没有复现 DNN、EFIT、q 剖面或 RF 沉积模型。"
+    )
+
+    st.markdown("#### 2. RF 波-等离子体与边界：领域关联")
+    st.plotly_chart(rf_research_schematic(), width="stretch", config=PLOT_CONFIG)
+    rf_pic = paper_by_id["lh_parametric_instability"]
+    rf_limiter = paper_by_id["lh_antenna_limiter"]
+    rf_ebw = paper_by_id["ebw_second_harmonic"]
+    st.markdown(
+        f"- **低杂波参数不稳定性**：{rf_pic['journal']}（{rf_pic['year']}），"
+        f"{rf_pic['author_role']}；二维全粒子 PIC 研究 EAST 参数下低杂泵波向低杂边带和低频模的参数衰变。"
+        f" [DOI](https://doi.org/{rf_pic['doi']})\n"
+        f"- **天线前等离子体-保护限制器互作用**：{rf_limiter['journal']}（{rf_limiter['year']}），"
+        f"{rf_limiter['author_role']}。当前仅依据题名和 DOI 元数据陈述研究对象。"
+        f" [DOI](https://doi.org/{rf_limiter['doi']})\n"
+        f"- **非均匀等离子体中的电子伯恩斯坦波二次谐波**：{rf_ebw['journal']}（{rf_ebw['year']}），"
+        f"{rf_ebw['author_role']}。该论文证明波-等离子体研究线索，不直接支撑本项目重建算法。"
+        f" [DOI](https://doi.org/{rf_ebw['doi']})"
+    )
+
+    st.markdown("#### 3. 集成建模与科研软件：工程直接关联")
+    fydev_paper = paper_by_id["fydev_fair4rs"]
+    image_col, explain_col = st.columns([1.45, 1.0])
+    with image_col:
+        st.image(
+            str(ROOT / "assets" / "fydev-workflow-figure1.png"),
+            caption=(
+                "原论文 Figure 1（未修改）：FyDev 的查找、获取、构建、使用/复用与 Python 调用流程。"
+                "Liu X, Yu Z, Xiang N., Scientific Data 10 (2023), CC BY 4.0。"
+            ),
+            use_container_width=True,
+        )
+    with explain_col:
+        st.markdown(
+            f"**证据**：{fydev_paper['journal']} {fydev_paper['volume_issue']}（{fydev_paper['year']}），"
+            f"项农老师为{fydev_paper['author_role']}。论文介绍面向磁约束聚变研究软件的发现、获取、"
+            "构建、复用、唯一标识与 Python 调用。\n\n"
+            "**项目映射**：结构化工具元数据、Python 确定性计算、版本与哈希、自动测试、运行清单、"
+            "Dify/Qwen 编排和专家审核。\n\n"
+            "**边界**：本项目没有接入或复现 FyDev/EAST 集成建模环境。\n\n"
+            f"[查看原论文](https://doi.org/{fydev_paper['doi']}) · "
+            "[查看 CC BY 4.0 许可](https://creativecommons.org/licenses/by/4.0/)"
+        )
+
+    st.markdown("#### 证据总表")
+    evidence_table = research_evidence_table(RESEARCH_CATALOG)
+    st.dataframe(
+        evidence_table,
+        width="stretch",
+        hide_index=True,
+        column_config={"DOI": st.column_config.LinkColumn("DOI", display_text="打开论文")},
+    )
+    st.download_button(
+        "下载研究证据 JSON",
+        (ROOT / "data" / "research_evidence.json").read_bytes(),
+        file_name="xiang_nong_research_evidence.json",
+        mime="application/json",
+    )
+    st.caption(
+        "身份边界：ORCID 0000-0002-8663-0470 的公开记录支持姓名与中国科学院等离子体物理研究所机构关系；"
+        "本项目不推断行政职务。图像来源、许可与 SHA-256 见 assets/SOURCES.md。"
+    )
+
+
 with tab_agent:
     st.subheader("确定性科学工具驱动的实验复盘智能体")
     flow_columns = st.columns([1, 0.18, 1, 0.18, 1, 0.18, 1])
@@ -611,7 +891,7 @@ with tab_agent:
         )
 
     manifest = {
-        "项目": "FRC 场反位形平衡重建实验室",
+        "项目": "类 FRC 磁诊断与物理约束重建实验室",
         "适用范围": "合成数据教学与面试演示",
         "输入参数": {
             "磁场反转强度": reversal_strength,
@@ -638,76 +918,96 @@ with tab_agent:
     )
 
 with tab_interview:
-    st.subheader("项农老师研究方向：已验证事实与项目连接")
+    st.subheader("面试表达：用可验证证据说明你的价值")
     st.markdown(
-        """
-        <div class="research-row">
-          <span class="tag">平衡重建</span><span class="tag">深度学习</span>
-          <strong>EAST 实时平衡重建</strong><br>
-          <span>以磁测量为输入、EFIT 磁通量为目标，用深度网络实现高空间分辨率和实时控制时间约束下的快速重建。</span><br>
-          <a href="https://doi.org/10.1063/5.0152318" target="_blank">《等离子体物理》（Physics of Plasmas），2023</a>
-        </div>
-        <div class="research-row">
-          <span class="tag">平衡自洽</span><span class="tag">电流模拟</span>
-          <strong>EAST 平衡与电流模拟一致性约束</strong><br>
-          <span>针对 POINT/MSE 等间接诊断的不确定性，引入电流模拟一致性，并关注 RF 波驱动电流、q 剖面与沉积位置的耦合。</span><br>
-          <a href="https://doi.org/10.1088/1741-4326/ad35d7" target="_blank">《核聚变》（Nuclear Fusion），2024</a>
-        </div>
-        <div class="research-row">
-          <span class="tag">RF 波</span><span class="tag">等离子体互作用</span>
-          <strong>低杂波、电子伯恩斯坦波与边界等离子体</strong><br>
-          <span>公开论文覆盖电子伯恩斯坦波二次谐波生成，以及 EAST 上低杂波天线前等离子体与保护限制器互作用。</span><br>
-          <a href="https://doi.org/10.1103/PhysRevLett.100.085002" target="_blank">《物理评论快报》（Physical Review Letters），2008</a>
-          &nbsp;·&nbsp;
-          <a href="https://doi.org/10.1088/1741-4326/ab082c" target="_blank">《核聚变》（Nuclear Fusion），2019</a>
-        </div>
-        <div class="research-row">
-          <span class="tag">集成建模</span><span class="tag">FAIR4RS</span>
-          <strong>磁约束聚变科研软件的可复现工程</strong><br>
-          <span>FyDev 面向 EAST 研究软件的构建、部署、调用和版本化，强调唯一标识、Python 模块化、包管理和可复现工作流。</span><br>
-          <a href="https://doi.org/10.1038/s41597-023-02470-y" target="_blank">《科学数据》（Scientific Data），2023</a>
-        </div>
-        """,
+        '<div class="evidence-note"><strong>定位：</strong>不把自己包装成聚变物理专家；证明自己能把'
+        "物理专家的问题转成可测试的 Python 工具、受约束的智能体工作流和可追溯的研究界面。</div>",
         unsafe_allow_html=True,
     )
 
-    st.markdown("#### 你的经历如何对上这些问题")
+    st.markdown("#### 90 秒项目演示顺序")
+    demo_columns = st.columns(4)
+    demo_steps = [
+        ("01 · 边界", "先说明全是合成类 FRC 数据，不冒充 EAST/FRC 实验结论。"),
+        ("02 · 方法", "展示稀疏探针、共享磁通重建、IDW 基线与三项验收指标。"),
+        ("03 · 工程", "展示故障注入、敏感性矩阵、证据 JSON、版本哈希和自动测试。"),
+        ("04 · 智能体", "说明 Dify/Qwen 只编排与解释，Python 工具计算，专家最终审批。"),
+    ]
+    for column, (title, body) in zip(demo_columns, demo_steps):
+        with column:
+            st.markdown(
+                f'<div class="flow-node"><strong>{title}</strong><span>{body}</span></div>',
+                unsafe_allow_html=True,
+            )
+
+    st.markdown("#### 你的经历如何转化为岗位价值")
     mapping = pd.DataFrame(
         [
             {
-                "项农老师关注的方法": "稀疏磁测量 -> 平衡/状态重建",
-                "项目中的对应证据": "磁通量基底拟合 + IDW 基线 + NRMSE/div(B) 验收",
-                "你的可迁移经历": "时序数据治理、复杂系统建模、Python/NumPy/Plotly",
-                "面试价值": "能将诊断问题拆成数据、先验、模型与评估闭环",
+                "公开研究问题": "稀疏磁测量 -> 平衡/状态重建",
+                "项目证据": "磁通基底拟合 + IDW 基线 + NRMSE/div(B)/反转半径",
+                "你的经历": "时序数据治理、复杂系统建模、Python/NumPy/Plotly",
+                "岗位价值": "把诊断问题拆成数据、先验、模型、指标和复核闭环",
             },
             {
-                "项农老师关注的方法": "电流模拟一致性与物理约束",
-                "项目中的对应证据": "Br/Bz 共用单一磁通函数，显式检验 div(B) 残差",
-                "你的可迁移经历": "MILP/动态规划、状态依赖切换、随机扰动与脉冲效应",
-                "面试价值": "不让 AI 跳过约束，把可行性与安全性变成确定性门禁",
+                "公开研究问题": "模型、诊断与物理约束的一致性",
+                "项目证据": "Br/Bz 共用磁通函数；显式声明它不等同于电流模拟约束",
+                "你的经历": "MILP/动态规划、状态依赖切换、随机扰动与脉冲效应",
+                "岗位价值": "把数值可行、物理可行和实验允许拆成确定性门禁",
             },
             {
-                "项农老师关注的方法": "集成建模与可复现科研软件",
-                "项目中的对应证据": "固定随机种子、模块化内核、测试、CSV/清单导出、明确适用域",
-                "你的可迁移经历": "Dify 多智能体、工具调用、数据校验、报告交付",
-                "面试价值": "可把物理研究原型做成可追溯、可回放、专家可复核的 AI 应用",
+                "公开研究问题": "集成建模与可复现科研软件",
+                "项目证据": "固定随机种子、模块化内核、测试、CSV/JSON、来源与许可",
+                "你的经历": "赛唯储能 Dify 多智能体、工具调用、测算校验与报告交付",
+                "岗位价值": "把科研原型做成可追溯、可回放、专家可复核的 AI 应用",
             },
         ]
     )
-    st.dataframe(mapping, width="stretch", hide_index=True, height=255)
+    st.dataframe(mapping, width="stretch", hide_index=True, height=275)
 
-    st.markdown("#### 面试中的项目说法")
+    st.markdown("#### 可直接使用的项目陈述")
     st.markdown(
         """
-        > 我注意到您的研究不只是用模型拟合实验数据，而是把平衡重建、电流模拟一致性和实时约束放在同一个问题里。我做的这个原型没有冒充真实 FRC 平衡求解器，而是用合成数据验证一个工程命题：稀疏诊断下，将 Br 和 Bz 纳入统一磁通表示，能否比独立插值更好地保留场反转与无散结构。
+        > 我核验了您在 EAST 快速平衡重建、电流模拟一致性约束和 FyDev 集成建模方面的公开论文。这个原型没有冒充真实 FRC 平衡求解器，而是用合成数据验证一个工程命题：稀疏磁诊断下，将 Br 和 Bz 纳入统一磁通表示，能否比独立插值更好地保留场反转与无散结构。页面里的 DOI、作者位次、图片许可和不能宣称的边界都做了结构化记录。
 
-        > 我在赛唯做储能 AI 智能体时，核心数值并不交给大模型自由生成，而是交给 Python、规则和优化器；Dify 负责数据校验、流程编排、工具调用和报告解释。我认为这与聚变科研 AI 应用的要求是一致的：先保证物理和数据链路可验证，再让 LLM 提升人机交互与知识复用效率。
+        > 我在浙江赛唯数字能源做储能 AI 智能体时，核心测算不交给大模型自由生成，而是交给 Python、规则、动态规划和 MILP；Dify 负责参数校验、工作流编排、工具调用和报告解释。我能带来的价值，是把物理专家定义的问题工程化成可测试工具、数据质量门禁和专家在环的智能体流程。
 
-        > 如果进入团队，我会先用真实数据字典、诊断位置和专家标注替换演示假设，按实验批次做离线回放和误差分解；在通过物理专家审核前，不将它用于装置参数下发或在线闭环控制。
+        > 如果进入团队，我会先和物理专家明确数据字典、诊断几何、标注口径、验收指标和失效模式，再用历史实验做离线回放、跨放电验证和误差分解。在通过专家审核和安全评审前，不把任何智能体输出用于装置参数下发或在线闭环控制。
         """
+    )
+
+    st.markdown("#### 不能说什么，以及应该怎么说")
+    claims = pd.DataFrame(
+        [
+            {
+                "避免表述": "我复现了项农老师的 FRC 平衡算法",
+                "严谨表述": "公开论文主线是 EAST 托卡马克；我只迁移了稀疏诊断和物理约束的方法论。",
+            },
+            {
+                "避免表述": "我的 div(B) 就是论文的电流模拟一致性约束",
+                "严谨表述": "两者都强调一致性，但约束对象不同；本项目没有电流演化、q 剖面或 RF 沉积模型。",
+            },
+            {
+                "避免表述": "这些图是 EAST/FRC 实验图和实验精度",
+                "严谨表述": "重建图来自固定随机种子的合成数据；关系图是概念示意；只有 FyDev Figure 1 是经许可复用的原论文图。",
+            },
+            {
+                "避免表述": "智能体可以直接控制装置",
+                "严谨表述": "智能体用于检索、编排、解释和报告；数值由确定性工具给出，专家负责审批。",
+            },
+        ]
+    )
+    st.dataframe(claims, width="stretch", hide_index=True)
+
+    st.markdown("#### 可向项农老师请教的问题")
+    st.markdown(
+        "1. 在 EAST 快速平衡重建中，从离线 EFIT 监督结果迁移到实时代理模型时，团队最关注的失效模式是磁面几何误差、内部参数误差，还是跨放电泛化？\n"
+        "2. 电流模拟一致性约束中，如何权衡间接诊断不确定性与电流演化模型本身的偏差？\n"
+        "3. 如果把平衡重建或实验复盘接入智能体，您更希望优先解决数据版本、诊断异常、适用域，还是推理延迟？\n"
+        "4. FyDev 一类可复现科研环境与智能体工具编排结合时，接口标准、元数据、评测集和审批日志应如何排序？"
     )
 
     st.caption(
         "身份来源：ORCID 0000-0002-8663-0470 记录项农（Nong Xiang）就职于中国科学院等离子体物理研究所。"
-        "上述论文链接均通过 DOI 元数据核验。"
+        "研究陈述基于公开 DOI 元数据和摘要，不预设项农老师在贝塔聚变的具体职责。"
     )
