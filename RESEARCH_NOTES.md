@@ -12,7 +12,7 @@ ORCID 记录 [0000-0002-8663-0470](https://orcid.org/0000-0002-8663-0470) 的姓
 
 ### 2.1 托卡马克平衡重建与实时化
 
-[Fast equilibrium reconstruction by deep learning on EAST tokamak](https://doi.org/10.1063/5.0152318) 以 EAST 磁测量为输入、EFIT 计算的极向磁通为输出目标，使用深度神经网络实现快速平衡重建。论文摘要明确提到：
+[基于深度学习的 EAST 托卡马克快速平衡重建（Fast equilibrium reconstruction by deep learning on EAST tokamak）](https://doi.org/10.1063/5.0152318) 以 EAST 磁测量为输入、EFIT 计算的极向磁通为输出目标，使用深度神经网络实现快速平衡重建。论文摘要明确提到：
 
 - 输入是磁测量，输出是 EFIT 的极向磁通。
 - 使用自动超参数优化。
@@ -23,7 +23,7 @@ ORCID 记录 [0000-0002-8663-0470](https://orcid.org/0000-0002-8663-0470) 的姓
 
 ### 2.2 平衡、电流模拟与诊断一致性
 
-[Equilibrium reconstruction constrained by the consistency of current simulation on EAST](https://doi.org/10.1088/1741-4326/ad35d7) 的出发点是：高可信平衡对等离子体研究很重要，但 POINT 与 MSE 等间接测量存在不确定性。论文引入电流模拟一致性约束，并指出 RF 波驱动电流会通过 q 剖面与波沉积位置的相互作用影响结果。
+[EAST 上受电流模拟一致性约束的平衡重建（Equilibrium reconstruction constrained by the consistency of current simulation on EAST）](https://doi.org/10.1088/1741-4326/ad35d7) 的出发点是：高可信平衡对等离子体研究很重要，但 POINT 与 MSE 等间接测量存在不确定性。论文引入电流模拟一致性约束，并指出 RF 波驱动电流会通过 q 剖面与波沉积位置的相互作用影响结果。
 
 方法论上，这不是单纯追求数据拟合误差最小，而是把诊断、平衡和电流模拟的一致性一起放进重建问题。这是本项目使用共享磁通函数同时拟合 `Br/Bz`，而不是独立插值两个分量的理由。
 
@@ -31,16 +31,16 @@ ORCID 记录 [0000-0002-8663-0470](https://orcid.org/0000-0002-8663-0470) 的姓
 
 项农老师较早的公开研究包括：
 
-- [Second-Harmonic Generation of Electron-Bernstein Waves in an Inhomogeneous Plasma](https://doi.org/10.1103/PhysRevLett.100.085002)：非均匀等离子体中电子伯恩斯坦波的二次谐波生成。
-- [Interactions of plasma and guard limiter in front of lower hybrid wave antenna on EAST tokamak](https://doi.org/10.1088/1741-4326/ab082c)：EAST 低杂波天线前等离子体与保护限制器的相互作用。
+- [非均匀等离子体中电子伯恩斯坦波的二次谐波生成（Second-Harmonic Generation of Electron-Bernstein Waves in an Inhomogeneous Plasma）](https://doi.org/10.1103/PhysRevLett.100.085002)。
+- [EAST 托卡马克低杂波天线前等离子体与保护限制器相互作用（Interactions of plasma and guard limiter in front of lower hybrid wave antenna on EAST tokamak）](https://doi.org/10.1088/1741-4326/ab082c)。
 
 由此可以严谨地说，其研究包含 RF 波物理、电流驱动以及边界等离子体/等离子体-组件互作用。但仅凭这两篇论文，不应将其扩大表述为“所有加热、输运与材料问题的专家”。
 
 ### 2.4 集成建模、科研软件与可复现性
 
-[Applying FAIR4RS principles to develop an integrated modeling environment for the magnetic confinement fusion](https://doi.org/10.1038/s41597-023-02470-y) 介绍了面向 EAST 研究软件的 FyDev 工具，覆盖构建、部署、调用、唯一标识、Python 模块化、包管理和工作流复现。
+[应用 FAIR4RS 原则开发磁约束聚变集成建模环境（Applying FAIR4RS principles to develop an integrated modeling environment for the magnetic confinement fusion）](https://doi.org/10.1038/s41597-023-02470-y) 介绍了面向 EAST 研究软件的 FyDev 工具，覆盖构建、部署、调用、唯一标识、Python 模块化、包管理和工作流复现。
 
-这表明其关注点不只是单个物理模型，也包含如何让聚变研究软件可组合、可调用和可复现。这与企业级 Agent 的工具注册、版本化、数据血缘、运行日志和人工审批有很强的工程连接。
+这表明其关注点不只是单个物理模型，也包含如何让聚变研究软件可组合、可调用和可复现。这与企业级智能体的工具注册、版本化、数据血缘、运行日志和人工审批有很强的工程连接。
 
 ## 3. 与 FRC 的边界
 
@@ -83,7 +83,7 @@ ORCID 记录 [0000-0002-8663-0470](https://orcid.org/0000-0002-8663-0470) 的姓
 | 物理 | 轴对称磁通表示、场反转、`div(B)` 残差 | 真实 FRC 平衡、稳定性或粒子闭合性 |
 | 数据 | 固定随机种子的合成探针、噪声和单点故障 | 任何真实装置诊断性能 |
 | 算法 | 岭回归磁通基底反演与 IDW 基线 | 深度学习实时 EFIT 的复现 |
-| Agent | 给出工具调用和专家审阅架构 | 可以自动下发装置指令 |
+| 智能体 | 给出工具调用和专家审阅架构 | 可以自动下发装置指令 |
 | 面试 | 证明候选人能把研究方法做成可验证应用 | 候选人已是 FRC 或托卡马克物理专家 |
 
 ## 6. 面试时可主动请教的问题
@@ -91,6 +91,6 @@ ORCID 记录 [0000-0002-8663-0470](https://orcid.org/0000-0002-8663-0470) 的姓
 1. 在您的 EAST 平衡重建工作中，离线 EFIT 向实时代理模型迁移时，团队最重视的失效模式是磁面几何误差、内部参数误差，还是跨放电工况泛化？
 2. 电流模拟一致性约束中，如何在诊断不确定性与模型偏差之间分配权重？
 3. 如果把平衡重建或实验复盘做成 AI 应用，您更看重单次推理延迟，还是对数据版本、诊断异常和模型适用域的可追溯管理？
-4. FyDev 这类可复现科研环境与当前 Agent 工具编排结合时，您认为最先应该解决的是接口标准、元数据、评测集，还是审批与日志？
+4. FyDev 这类可复现科研环境与当前智能体工具编排结合时，您认为最先应该解决的是接口标准、元数据、评测集，还是审批与日志？
 
 这些问题是从公开论文抽象的方法问题，不预设项农老师在贝塔聚变的具体职责。

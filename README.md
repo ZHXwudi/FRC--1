@@ -1,6 +1,6 @@
-# FRC Equilibrium Reconstruction Lab
+# FRC 场反位形平衡重建实验室
 
-一个面向 AI 应用工程师面试展示的 Streamlit 科学可视化项目：使用合成的 FRC-like 轴对称磁场，演示稀疏磁探针下的物理约束平衡重建、传感器质量筛查、脉冲诊断和可复现实验复盘。
+一个面向 AI 应用工程师面试展示的 Streamlit 科学可视化项目：使用合成的类 FRC 轴对称磁场，演示稀疏磁探针下的物理约束平衡重建、传感器质量筛查、脉冲诊断和可复现实验复盘。
 
 > 本项目只用于科普、工程原型与面试交流。它不是 Grad-Shafranov 平衡求解器，未经任何聚变装置数据验证，不得用于装置操作、实验参数下发或安全决策。
 
@@ -22,7 +22,7 @@
 - **诊断质量**：注入漂移、尖峰或饱和故障，用稳健残差分数标记需复核探针。
 - **脉冲复盘**：展示形成、压缩和衰减阶段的合成时序，并导出 CSV。
 - **敏感性实验**：量化探针数量与测量噪声对两类方法的影响。
-- **Agent 安全边界**：区分 Qwen/Dify 的编排与解释职责，以及 Python/物理工具的确定性计算职责。
+- **智能体安全边界**：区分 Qwen/Dify 的编排与解释职责，以及 Python/物理工具的确定性计算职责。
 - **研究映射**：将项农老师公开研究主线、项目技术证据和候选人经历放在同一张表里。
 
 ## 物理与算法
@@ -72,10 +72,10 @@ python -m pytest
 ## 研究来源
 
 - [Nong Xiang, ORCID 0000-0002-8663-0470](https://orcid.org/0000-0002-8663-0470)
-- [Fast equilibrium reconstruction by deep learning on EAST tokamak](https://doi.org/10.1063/5.0152318)
-- [Equilibrium reconstruction constrained by the consistency of current simulation on EAST](https://doi.org/10.1088/1741-4326/ad35d7)
-- [Applying FAIR4RS principles to develop an integrated modeling environment for magnetic confinement fusion](https://doi.org/10.1038/s41597-023-02470-y)
-- [Second-Harmonic Generation of Electron-Bernstein Waves in an Inhomogeneous Plasma](https://doi.org/10.1103/PhysRevLett.100.085002)
-- [Interactions of plasma and guard limiter in front of lower hybrid wave antenna on EAST tokamak](https://doi.org/10.1088/1741-4326/ab082c)
+- [基于深度学习的 EAST 托卡马克快速平衡重建](https://doi.org/10.1063/5.0152318)
+- [EAST 上受电流模拟一致性约束的平衡重建](https://doi.org/10.1088/1741-4326/ad35d7)
+- [应用 FAIR4RS 原则开发磁约束聚变集成建模环境](https://doi.org/10.1038/s41597-023-02470-y)
+- [非均匀等离子体中电子伯恩斯坦波的二次谐波生成](https://doi.org/10.1103/PhysRevLett.100.085002)
+- [EAST 托卡马克低杂波天线前等离子体与保护限制器相互作用](https://doi.org/10.1088/1741-4326/ab082c)
 
 详细的事实分层、研究主线和面试表达边界见 [RESEARCH_NOTES.md](RESEARCH_NOTES.md)。
