@@ -28,7 +28,7 @@ def test_flux_reconstruction_beats_unconstrained_idw() -> None:
     grid = make_grid(nr=58, nz=72)
     equilibrium = generate_equilibrium(grid, reversal_strength=1.05, elongation=1.55)
     probes = sample_probes(equilibrium, count=30, noise_percent=0.5, seed=12)
-    reconstruction = reconstruct_from_probes(equilibrium, probes, regularization=1e-4)
+    reconstruction = reconstruct_from_probes(grid, probes, elongation=1.55, regularization=1e-4)
     idw_br, idw_bz = idw_reconstruct(probes, grid)
 
     physics_error = normalized_rmse(
@@ -43,7 +43,7 @@ def test_flux_representation_reduces_divergence_residual() -> None:
     grid = make_grid(nr=58, nz=72)
     equilibrium = generate_equilibrium(grid)
     probes = sample_probes(equilibrium, count=24, noise_percent=1.0, seed=8)
-    reconstruction = reconstruct_from_probes(equilibrium, probes)
+    reconstruction = reconstruct_from_probes(grid, probes, elongation=1.55)
     idw_br, idw_bz = idw_reconstruct(probes, grid)
 
     physics_div = np.sqrt(np.mean(cylindrical_divergence(reconstruction.br, reconstruction.bz, grid) ** 2))
@@ -55,7 +55,7 @@ def test_fault_is_ranked_as_anomalous() -> None:
     grid = make_grid(nr=58, nz=72)
     equilibrium = generate_equilibrium(grid)
     probes = sample_probes(equilibrium, count=26, noise_percent=0.3, fault_mode="Spike", seed=21)
-    reconstruction = reconstruct_from_probes(equilibrium, probes, regularization=1e-3)
+    reconstruction = reconstruct_from_probes(grid, probes, elongation=1.55, regularization=1e-3)
 
     assert probes.fault_index is not None
     top_three = np.argsort(reconstruction.anomaly_score)[-3:]

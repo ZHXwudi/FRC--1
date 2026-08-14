@@ -214,23 +214,26 @@ def sample_probes(
 
 
 def reconstruct_from_probes(
-    equilibrium: Equilibrium,
+    grid: Grid,
     probes: ProbeSet,
+    elongation: float = 1.55,
     regularization: float = 1e-3,
     basis_count: int = 3,
 ) -> Reconstruction:
     """Reconstruct a flux-consistent field from sparse magnetic probes."""
-    if not 2 <= basis_count <= len(equilibrium.basis_fields):
+    basis_flux = _flux_basis(grid, elongation)
+    basis_fields = tuple(field_from_flux(phi, grid) for phi in basis_flux)
+    if not 2 <= basis_count <= len(basis_fields):
         raise ValueError("basis_count is outside the available basis")
 
     y = np.concatenate([probes.br, probes.bz])
     columns: list[np.ndarray] = []
-    for br_basis, bz_basis in equilibrium.basis_fields[:basis_count]:
+    for br_basis, bz_basis in basis_fields[:basis_count]:
         columns.append(
             np.concatenate(
                 [
-                    _bilinear_sample(br_basis, equilibrium.grid, probes.r, probes.z),
-                    _bilinear_sample(bz_basis, equilibrium.grid, probes.r, probes.z),
+                    _bilinear_sample(br_basis, grid, probes.r, probes.z),
+                    _bilinear_sample(bz_basis, grid, probes.r, probes.z),
                 ]
             )
         )
@@ -241,13 +244,13 @@ def reconstruct_from_probes(
     scaled_coefficients = np.linalg.solve(scaled.T @ scaled + ridge, scaled.T @ y)
     coefficients = scaled_coefficients / np.maximum(scale, 1e-12)
 
-    br = sum(c * pair[0] for c, pair in zip(coefficients, equilibrium.basis_fields[:basis_count]))
-    bz = sum(c * pair[1] for c, pair in zip(coefficients, equilibrium.basis_fields[:basis_count]))
+    br = sum(c * pair[0] for c, pair in zip(coefficients, basis_fields[:basis_count]))
+    bz = sum(c * pair[1] for c, pair in zip(coefficients, basis_fields[:basis_count]))
 
-    psi = sum(c * phi for c, phi in zip(coefficients, equilibrium.basis_flux[:basis_count]))
+    psi = sum(c * phi for c, phi in zip(coefficients, basis_flux[:basis_count]))
 
-    predicted_br = _bilinear_sample(br, equilibrium.grid, probes.r, probes.z)
-    predicted_bz = _bilinear_sample(bz, equilibrium.grid, probes.r, probes.z)
+    predicted_br = _bilinear_sample(br, grid, probes.r, probes.z)
+    predicted_bz = _bilinear_sample(bz, grid, probes.r, probes.z)
     residual = np.sqrt((predicted_br - probes.br) ** 2 + (predicted_bz - probes.bz) ** 2)
     median = float(np.median(residual))
     mad = float(np.median(np.abs(residual - median)))

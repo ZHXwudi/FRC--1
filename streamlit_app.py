@@ -106,8 +106,9 @@ def run_case(
         fault_mode=fault_mode,
     )
     reconstruction = reconstruct_from_probes(
-        equilibrium,
+        grid,
         probes,
+        elongation=elongation,
         regularization=regularization,
     )
     idw_br, idw_bz = idw_reconstruct(probes, grid)
@@ -135,8 +136,9 @@ def sensitivity_matrix(reversal_strength: float, elongation: float, regularizati
                 seed=100 + row * 10 + col,
             )
             reconstructed = reconstruct_from_probes(
-                equilibrium,
+                grid,
                 probes,
+                elongation=elongation,
                 regularization=regularization,
             )
             idw_br, idw_bz = idw_reconstruct(probes, grid)
