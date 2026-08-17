@@ -2,6 +2,8 @@
 
 一个面向 AI 应用工程师面试展示的 Streamlit 科学可视化项目：使用合成的类 FRC 轴对称磁场，演示稀疏磁探针下的物理约束平衡重建、传感器质量筛查、脉冲诊断和可复现实验复盘。
 
+项目另含一个候选人论文启发的 PyTorch 小型代理模型：将状态依赖切换、时滞、随机扰动和脉冲效应构造成标准化合成轨迹，并用动力学软残差约束一步预测。
+
 > 本项目只用于科普、工程原型与面试交流。它不是 Grad-Shafranov 平衡求解器，未经任何聚变装置数据验证，不得用于装置操作、实验参数下发或安全决策。
 
 ## 为什么做这个项目
@@ -13,6 +15,9 @@
 ```text
 稀疏诊断 -> 数据质量门禁 -> 物理约束重建 -> 基线对照
          -> 误差/不确定性 -> 实验复盘 -> 专家审阅
+
+同步控制论文 -> 合成切换动力学 -> PyTorch 代理模型
+             -> 轨迹级切分 -> 递推/OOD 验证 -> TorchScript
 ```
 
 ## 可交互内容
@@ -22,6 +27,7 @@
 - **诊断质量**：注入漂移、尖峰或饱和故障，用稳健残差分数标记需复核探针。
 - **脉冲复盘**：展示形成、压缩和衰减阶段的合成时序，并导出 CSV。
 - **敏感性实验**：量化探针数量与测量噪声对两类方法的影响。
+- **同步代理模型**：展示 3,026 参数 PyTorch 模型的一步、120 步递推、域外和延迟评估。
 - **智能体安全边界**：区分 Qwen/Dify 的编排与解释职责，以及 Python/物理工具的确定性计算职责。
 - **研究证据**：逐篇展示 DOI、期刊、作者位次、项目关系、不能宣称的内容和图片许可。
 - **面试表达**：把公开研究问题、项目证据和候选人的储能智能体经历放在同一张表里。
@@ -32,6 +38,31 @@
 - RF 波与边界部件图是根据论文摘要或题名自行绘制的关系示意，不代表装置几何、尺寸或仿真结果。
 - 页面只复用一张原论文图片：FyDev Figure 1。来源论文采用 CC BY 4.0，原始地址、署名和 SHA-256 均记录在 [`assets/SOURCES.md`](assets/SOURCES.md)。
 - 六篇论文的结构化证据保存在 [`data/research_evidence.json`](data/research_evidence.json)，应用启动和测试时都会检查来源字段及图片哈希。
+- 候选人论文只做结构化摘要和方法迁移，不复制受版权保护的论文图；记录见 [`data/candidate_paper_evidence.json`](data/candidate_paper_evidence.json)。
+
+## 同步控制代理模型
+
+来源论文研究含随机扰动和脉冲效应的状态依赖切换神经网络固定/预设时间同步，候选人为第 2/5 作者。该论文不是 PINN 论文，本项目也没有复现论文的 LMI、完整 PI 控制器、定理或数值图。
+
+项目采用一个数值稳定的二维标准化基准生成轨迹。小型残差 MLP 学习一步状态增量，训练损失同时包含监督误差和解析动力学软残差。数据按整条 trajectory 分组切分，另设扩大初值、噪声、控制期限和脉冲增益范围的 OOD 压力测试。
+
+固定种子 2026 的当前产物：
+
+| 指标 | 实测值 |
+|---|---:|
+| 测试集一步 NRMSE | 1.31% |
+| 持久性基线 NRMSE | 11.51% |
+| 120 步递推 NRMSE | 3.55% |
+| 训练域外一步 NRMSE | 3.21% |
+| 模型参数量 | 3,026 |
+
+这些数值只适用于仓库的合成基准，不代表论文复现精度或 FRC 装置性能。完整设计、复现说明和 FRC 迁移清单见 [`SURROGATE_NOTES.md`](SURROGATE_NOTES.md)。
+
+重新训练并导出 checkpoint、TorchScript、指标和示例轨迹：
+
+```powershell
+python scripts/train_surrogate.py
+```
 
 ## 物理与算法
 
@@ -63,7 +94,7 @@ streamlit run streamlit_app.py
 python -m pytest
 ```
 
-7 项测试覆盖场反转、物理约束重建对 IDW 基线的精度优势、`div(B)` 残差、故障探针检出，以及论文期刊、证据字段、图片许可与 SHA-256 完整性。
+测试覆盖场反转、物理约束重建、`div(B)` 残差、故障探针、研究证据，以及切换/脉冲模拟、轨迹级无泄漏切分、代理训练和递推稳定性。
 
 ## 代码结构
 
@@ -72,13 +103,19 @@ python -m pytest
 |-- streamlit_app.py          # 交互式科学仪表板
 |-- src/frc_lab/physics.py    # 合成平衡、探针、重建与评估
 |-- src/frc_lab/research.py   # 研究证据与图片来源校验
+|-- src/frc_lab/surrogate.py  # 切换动力学、PyTorch 代理与评估
+|-- scripts/train_surrogate.py
+|-- models/                   # checkpoint、TorchScript、指标与轨迹
 |-- tests/test_physics.py     # 计算内核测试
+|-- tests/test_surrogate.py
 |-- tests/test_research_evidence.py
 |-- data/research_evidence.json
+|-- data/candidate_paper_evidence.json
 |-- assets/
 |   |-- fydev-workflow-figure1.png
 |   `-- SOURCES.md
 |-- RESEARCH_NOTES.md         # 项农老师研究证据与边界
+|-- SURROGATE_NOTES.md        # 候选人论文、代理模型与迁移边界
 |-- requirements.txt
 `-- .streamlit/config.toml
 ```
@@ -86,6 +123,7 @@ python -m pytest
 ## 研究来源
 
 - [Nong Xiang, ORCID 0000-0002-8663-0470](https://orcid.org/0000-0002-8663-0470)
+- [候选人参与的状态依赖切换神经网络同步论文，Neural Networks 194 (2026) 108100](https://doi.org/10.1016/j.neunet.2025.108100)
 - [基于深度学习的 EAST 托卡马克快速平衡重建，AIP Advances 13(7)，2023](https://doi.org/10.1063/5.0152318)
 - [EAST 上受电流模拟一致性约束的平衡重建](https://doi.org/10.1088/1741-4326/ad35d7)
 - [低杂波参数不稳定性的粒子网格（PIC）模拟](https://doi.org/10.1063/5.0104505)

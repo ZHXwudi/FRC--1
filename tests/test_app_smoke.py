@@ -15,6 +15,7 @@ def test_streamlit_app_renders_without_exception() -> None:
         "平衡重建",
         "脉冲诊断",
         "敏感性",
+        "同步代理模型",
         "研究证据",
         "智能体架构",
         "面试表达",

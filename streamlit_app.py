@@ -29,6 +29,10 @@ from frc_lab.research import load_research_catalog, validate_research_catalog  #
 
 RESEARCH_CATALOG = load_research_catalog(ROOT / "data" / "research_evidence.json")
 CATALOG_ERRORS = validate_research_catalog(RESEARCH_CATALOG, ROOT)
+SURROGATE_METRICS = json.loads(
+    (ROOT / "models" / "surrogate_metrics.json").read_text(encoding="utf-8")
+)
+SURROGATE_ROLLOUT = pd.read_csv(ROOT / "models" / "example_rollout.csv")
 
 
 st.set_page_config(
@@ -423,6 +427,113 @@ def sensitivity_figure(probe_counts, noise_levels, physics_errors, idw_errors):
     return figure
 
 
+def surrogate_rollout_figure(rollout: pd.DataFrame):
+    figure = make_subplots(
+        rows=2,
+        cols=1,
+        shared_xaxes=True,
+        row_heights=[0.74, 0.26],
+        vertical_spacing=0.10,
+    )
+    series = [
+        ("true_error_1", "参考 e1", "#17212b", "solid"),
+        ("predicted_error_1", "代理 e1", "#087f8c", "dash"),
+        ("true_error_2", "参考 e2", "#8e3b46", "solid"),
+        ("predicted_error_2", "代理 e2", "#d8782d", "dash"),
+    ]
+    for column, label, color, dash in series:
+        figure.add_trace(
+            go.Scatter(
+                x=rollout.time_s,
+                y=rollout[column],
+                name=label,
+                mode="lines",
+                line=dict(color=color, width=2.0, dash=dash),
+                hovertemplate=f"{label}<br>t=%{{x:.2f}} s<br>e=%{{y:.4f}}<extra></extra>",
+            ),
+            row=1,
+            col=1,
+        )
+
+    mode_code = rollout.mode_1 + 2 * rollout.mode_2
+    figure.add_trace(
+        go.Scatter(
+            x=rollout.time_s,
+            y=mode_code,
+            name="状态依赖模式",
+            mode="lines",
+            line=dict(color="#596873", width=1.8, shape="hv"),
+            hovertemplate="t=%{x:.2f} s<br>模式编码=%{y:.0f}<extra></extra>",
+        ),
+        row=2,
+        col=1,
+    )
+    impulse_rows = rollout.loc[rollout.impulse > 0]
+    figure.add_trace(
+        go.Scatter(
+            x=impulse_rows.time_s,
+            y=np.full(len(impulse_rows), 3.28),
+            name="脉冲事件",
+            mode="markers",
+            marker=dict(color="#b4232b", size=8, symbol="diamond"),
+            hovertemplate="脉冲事件<br>t=%{x:.2f} s<extra></extra>",
+        ),
+        row=2,
+        col=1,
+    )
+    for time in impulse_rows.time_s:
+        figure.add_vline(x=time, line_color="#b4232b", line_width=0.8, line_dash="dot")
+
+    figure.update_layout(
+        **PLOT_LAYOUT,
+        height=470,
+        legend=dict(orientation="h", y=1.08, x=0.0),
+    )
+    figure.update_yaxes(title_text="同步误差", row=1, col=1, gridcolor="#e7ebed")
+    figure.update_yaxes(
+        title_text="模式",
+        tickvals=[0, 1, 2, 3],
+        range=[-0.25, 3.55],
+        row=2,
+        col=1,
+        gridcolor="#edf0f1",
+    )
+    figure.update_xaxes(title_text="时间 [s]", row=2, col=1, gridcolor="#e7ebed")
+    return figure
+
+
+def surrogate_learning_figure(metrics: dict):
+    history = pd.DataFrame(metrics["history"])
+    figure = go.Figure()
+    series = [
+        ("data_loss", "训练数据", "#087f8c"),
+        ("physics_loss", "动力学残差", "#d8782d"),
+        ("validation_loss", "验证", "#8e3b46"),
+    ]
+    for column, label, color in series:
+        figure.add_trace(
+            go.Scatter(
+                x=history.epoch,
+                y=history[column],
+                name=label,
+                mode="lines",
+                line=dict(color=color, width=2.0),
+                hovertemplate=f"{label}<br>epoch=%{{x:.0f}}<br>loss=%{{y:.4f}}<extra></extra>",
+            )
+        )
+    figure.update_layout(
+        **PLOT_LAYOUT,
+        height=470,
+        xaxis_title="训练轮次",
+        yaxis_title="归一化损失（对数）",
+        yaxis_type="log",
+        legend=dict(orientation="h", y=1.08, x=0.0),
+    )
+    figure.update_xaxes(gridcolor="#e7ebed")
+    figure.update_yaxes(gridcolor="#e7ebed")
+    return figure
+
+
 def _add_flow_node(figure, x0, x1, y0, y1, text, fill="#eef7f7", border="#7da9ae"):
     figure.add_shape(
         type="rect",
@@ -632,8 +743,16 @@ st.markdown(
 if CATALOG_ERRORS:
     st.error("研究证据目录校验失败：" + "；".join(CATALOG_ERRORS))
 
-tab_equilibrium, tab_shot, tab_sensitivity, tab_research, tab_agent, tab_interview = st.tabs(
-    ["平衡重建", "脉冲诊断", "敏感性", "研究证据", "智能体架构", "面试表达"]
+(
+    tab_equilibrium,
+    tab_shot,
+    tab_sensitivity,
+    tab_surrogate,
+    tab_research,
+    tab_agent,
+    tab_interview,
+) = st.tabs(
+    ["平衡重建", "脉冲诊断", "敏感性", "同步代理模型", "研究证据", "智能体架构", "面试表达"]
 )
 
 with tab_equilibrium:
@@ -741,6 +860,145 @@ with tab_sensitivity:
             columns=[str(value) for value in probe_counts],
         )
         st.dataframe(sensitivity_table.style.format("{:.2%}"), width="stretch")
+
+
+with tab_surrogate:
+    st.subheader("论文启发的同步控制 PyTorch 代理模型")
+    st.markdown(
+        '<div class="boundary-note"><strong>方法边界：</strong>你的论文研究状态依赖切换神经网络的'
+        "固定/预设时间同步，本项目保留切换、时滞、随机扰动、脉冲和时间约束反馈等结构，"
+        "但使用缩放后的二维合成基准。它不是论文定理、LMI、PI 控制器或数值图的复现，也没有使用"
+        "FRC 装置数据。</div>",
+        unsafe_allow_html=True,
+    )
+
+    model_info = SURROGATE_METRICS["model"]
+    in_domain = SURROGATE_METRICS["in_domain"]
+    ood = SURROGATE_METRICS["ood"]
+    rollout_metrics = SURROGATE_METRICS["rollout"]
+    metric_a, metric_b, metric_c, metric_d = st.columns(4)
+    metric_a.metric("模型参数量", f'{model_info["parameter_count"]:,}')
+    metric_b.metric(
+        "测试集一步 NRMSE",
+        f'{in_domain["nrmse"]:.2%}',
+        delta=f'持久性基线 {in_domain["persistence_nrmse"]:.2%}',
+        delta_color="off",
+    )
+    metric_c.metric("120 步递推 NRMSE", f'{rollout_metrics["nrmse"]:.2%}')
+    metric_d.metric("训练域外 NRMSE", f'{ood["nrmse"]:.2%}')
+
+    chart_col, learning_col = st.columns([1.55, 1.0])
+    with chart_col:
+        st.markdown("#### 固定测试轨迹：参考与代理递推")
+        st.plotly_chart(
+            surrogate_rollout_figure(SURROGATE_ROLLOUT),
+            width="stretch",
+            config=PLOT_CONFIG,
+        )
+    with learning_col:
+        st.markdown("#### 训练与验证收敛")
+        st.plotly_chart(
+            surrogate_learning_figure(SURROGATE_METRICS),
+            width="stretch",
+            config=PLOT_CONFIG,
+        )
+    st.caption(
+        "全部曲线由仓库训练脚本和固定随机种子生成；红色菱形为脉冲事件，阶梯线为两个状态分量的切换模式编码。"
+    )
+
+    method_col, validation_col = st.columns(2)
+    with method_col:
+        st.markdown("#### 为什么是 physics/control-informed，而不是论文等同于 PINN")
+        st.markdown(
+            "代理网络学习一步状态增量，训练目标由两部分组成：轨迹监督误差，以及解析确定性漂移和脉冲映射"
+            "给出的软残差。它借鉴 PINN 的‘方程进入损失’思想，但没有把论文包装成 PINN，也不以"
+            "偏微分方程边界条件求解为目标。"
+        )
+        st.code(
+            "loss = supervised_one_step_loss\n"
+            "     + 0.18 * dynamics_residual_loss",
+            language="python",
+        )
+    with validation_col:
+        st.markdown("#### 可审计实验设计")
+        experiment = SURROGATE_METRICS["experiment"]
+        validation_table = pd.DataFrame(
+            [
+                ("数据", f'{experiment["trajectory_count"]} 条合成轨迹；固定种子 {experiment["seed"]}'),
+                (
+                    "切分",
+                    f'{experiment["train_trajectories"]}/{experiment["validation_trajectories"]}/'
+                    f'{experiment["test_trajectories"]} 条轨迹；组间无重叠',
+                ),
+                ("压力测试", f'{experiment["ood_trajectories"]} 条域外轨迹'),
+                ("部署产物", "PyTorch checkpoint + TorchScript"),
+                (
+                    "CPU eager 延迟",
+                    f'p50 {SURROGATE_METRICS["latency_cpu_eager"]["p50_ms"]:.3f} ms；'
+                    f'p95 {SURROGATE_METRICS["latency_cpu_eager"]["p95_ms"]:.3f} ms',
+                ),
+            ],
+            columns=["检查项", "实测记录"],
+        )
+        st.dataframe(validation_table, width="stretch", hide_index=True, height=212)
+        st.caption("延迟是当前机器的批量 1 CPU eager 微基准，不等于端到端系统延迟，也不据此宣称加速。")
+
+    st.markdown("#### 从你的论文经历迁移到 AI 应用工程岗位")
+    mapping = pd.DataFrame(
+        [
+            {
+                "你的证据": "论文第二作者；Software / Formal analysis / Investigation / 初稿",
+                "项目落点": "将切换、随机、时滞、脉冲系统变成可测试的数据生成器",
+                "岗位价值": "能与控制/物理专家对齐方程、假设、指标与失效边界",
+            },
+            {
+                "你的证据": "神经网络同步控制研究",
+                "项目落点": "3,026 参数 PyTorch 残差 MLP + 动力学软约束",
+                "岗位价值": "把理论模型转成可训练、可评估、可部署的代理模型",
+            },
+            {
+                "你的证据": "浙江赛唯储能数据分析与 Dify 智能体",
+                "项目落点": "轨迹级切分、OOD 压测、TorchScript、指标 JSON",
+                "岗位价值": "用智能体编排确定性模型工具，保留版本、证据和专家审批",
+            },
+            {
+                "你的证据": "正在补齐 FRC 领域知识",
+                "项目落点": "与类 FRC 重建页共享同一实验审计界面",
+                "岗位价值": "先证明建模工程能力，再由物理专家约束 FRC 数据字典和验收口径",
+            },
+        ]
+    )
+    st.dataframe(mapping, width="stretch", hide_index=True, height=252)
+
+    st.markdown("#### 可直接用于面试的严谨表述")
+    st.markdown(
+        "> 我参与的论文研究状态依赖切换神经网络在随机扰动和脉冲效应下的固定/预设时间同步，"
+        "我不是把这篇论文说成 PINN，也没有声称复现了论文的 LMI 和 PI 控制器。这个项目做的是"
+        "工程迁移：先构造保留关键结构的可复现合成基准，再用小型 PyTorch 网络学习一步动力学，"
+        "把解析漂移作为软残差加入损失，并用轨迹级切分、递推误差、OOD 压测和 TorchScript 导出"
+        "完成验收。进入 FRC 场景后，我会和物理专家一起替换状态定义、控制方程和真实诊断数据，"
+        "而不是直接把二维基准冒充装置模型。"
+    )
+
+    download_a, download_b, download_c = st.columns(3)
+    download_a.download_button(
+        "下载实验指标 JSON",
+        (ROOT / "models" / "surrogate_metrics.json").read_bytes(),
+        file_name="surrogate_metrics.json",
+        mime="application/json",
+    )
+    download_b.download_button(
+        "下载 PyTorch checkpoint",
+        (ROOT / "models" / "sdsnn_surrogate.pt").read_bytes(),
+        file_name="sdsnn_surrogate.pt",
+        mime="application/octet-stream",
+    )
+    download_c.download_button(
+        "下载 TorchScript 模型",
+        (ROOT / "models" / "sdsnn_surrogate.torchscript.pt").read_bytes(),
+        file_name="sdsnn_surrogate.torchscript.pt",
+        mime="application/octet-stream",
+    )
 
 
 with tab_research:

@@ -1,0 +1,38 @@
+{
+  "title": "Fixed/prescribed-time Synchronization of State-dependent Switching Neural Networks with stochastic disturbance and impulsive effects",
+  "title_zh": "含随机扰动与脉冲效应的状态依赖切换神经网络固定/预设时间同步",
+  "journal": "Neural Networks",
+  "volume": "194",
+  "article_number": "108100",
+  "publication_year": 2026,
+  "doi": "10.1016/j.neunet.2025.108100",
+  "authors": [
+    "Guici Chen",
+    "Houxuan Zhang",
+    "Shiping Wen",
+    "Junhao Hu",
+    "Leimin Wang"
+  ],
+  "candidate_author_position": "2/5",
+  "candidate_credit": [
+    "Writing - original draft",
+    "Software",
+    "Investigation",
+    "Formal analysis"
+  ],
+  "verified_scope": [
+    "state-dependent switching neural networks",
+    "stochastic disturbance",
+    "impulsive effects",
+    "fixed-time synchronization",
+    "prescribed-time synchronization",
+    "LMI-based sufficient conditions",
+    "unified PI controller"
+  ],
+  "project_boundary": {
+    "paper_reproduction": false,
+    "pinn_paper": false,
+    "frc_experiment": false,
+    "description": "项目仅迁移切换、时滞、随机扰动、脉冲和时间约束控制的结构，使用缩放后的二维合成基准训练 PyTorch 代理模型。"
+  }
+}
